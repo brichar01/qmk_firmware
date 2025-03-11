@@ -14,126 +14,92 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <inttypes.h>
 #include <stdint.h>
 #include "process_key_lock.h"
+#include "keycodes.h"
+#include "action.h"
+#include "debug.h"
 
-#define BV_64(shift) (((uint64_t)1) << (shift))
-#define GET_KEY_ARRAY(code) (((code) < 0x40) ? key_state[0] : ((code) < 0x80) ? key_state[1] : ((code) < 0xC0) ? key_state[2] : key_state[3])
-#define GET_CODE_INDEX(code) (((code) < 0x40) ? (code) : ((code) < 0x80) ? (code)-0x40 : ((code) < 0xC0) ? (code)-0x80 : (code)-0xC0)
-#define KEY_STATE(code) (GET_KEY_ARRAY(code) & BV_64(GET_CODE_INDEX(code))) == BV_64(GET_CODE_INDEX(code))
-#define SET_KEY_ARRAY_STATE(code, val) \
-    do {                               \
-        switch (code) {                \
-            case 0x00 ... 0x3F:        \
-                key_state[0] = (val);  \
-                break;                 \
-            case 0x40 ... 0x7F:        \
-                key_state[1] = (val);  \
-                break;                 \
-            case 0x80 ... 0xBF:        \
-                key_state[2] = (val);  \
-                break;                 \
-            case 0xC0 ... 0xFF:        \
-                key_state[3] = (val);  \
-                break;                 \
-        }                              \
-    } while (0)
-#define SET_KEY_STATE(code) SET_KEY_ARRAY_STATE(code, (GET_KEY_ARRAY(code) | BV_64(GET_CODE_INDEX(code))))
-#define UNSET_KEY_STATE(code) SET_KEY_ARRAY_STATE(code, (GET_KEY_ARRAY(code)) & ~(BV_64(GET_CODE_INDEX(code))))
-#define IS_STANDARD_KEYCODE(code) ((code) <= 0xFF)
+#define MOD_KEY_MIN KC_LEFT_CTRL
+#define MOD_KEY_MAX KC_RIGHT_GUI
+#define MOD_KEY_LEN (KC_RIGHT_GUI - KC_LEFT_CTRL)
 
-// Locked key state. This is an array of 256 bits, one for each of the standard keys supported qmk.
-uint64_t key_state[4] = {0x0, 0x0, 0x0, 0x0};
-bool     watching     = false;
+// initial modifier state
+static bool real_mod_state[MOD_KEY_LEN] = {};
+// Locked modifiers state
+static bool mod_state[MOD_KEY_LEN] = {};
+// watch while the lock key is pressed for new mod key presses
+static bool watching = false;
+// lock/unlock modifiers
+static bool locked = false;
 
-// Translate any OSM keycodes back to their unmasked versions.
-static inline uint16_t translate_keycode(uint16_t keycode) {
-    if (keycode > QK_ONE_SHOT_MOD && keycode <= QK_ONE_SHOT_MOD_MAX) {
-        return keycode ^ QK_ONE_SHOT_MOD;
-    } else {
-        return keycode;
-    }
-}
+/*
+ * Modifier locker code
+ * 
+ * Hold modifier(s) and the lock key and the modifier will remain locked 
+ * until the lock key is pressed again.
 
-void cancel_key_lock(void) {
-    watching = false;
-    UNSET_KEY_STATE(0x0);
-}
-
+ * TODO: Handle soft mods/etc better, I don't use them yet.
+ *   * See what other defines are going to mess with this.
+ */
 bool process_key_lock(uint16_t *keycode, keyrecord_t *record) {
-    // We start by categorizing the keypress event. In the event of a down
-    // event, there are several possibilities:
-    // 1. The key is not being locked, and we are not watching for new keys.
-    //    In this case, we bail immediately. This is the common case for down events.
-    // 2. The key was locked, and we need to unlock it. In this case, we will
-    //    reset the state in our map and return false. When the user releases the
-    //    key, the up event will no longer be masked and the OS will observe the
-    //    released key.
-    // 3. QK_LOCK was just pressed. In this case, we set up the state machine
-    //    to watch for the next key down event, and finish processing
-    // 4. The keycode is below 0xFF, and we are watching for new keys. In this case,
-    //    we will send the key down event to the os, and set the key_state for that
-    //    key to mask the up event.
-    // 5. The keycode is above 0xFF, and we're wathing for new keys. In this case,
-    //    the user pressed a key that we cannot "lock", as it's a series of keys,
-    //    or a macro invocation, or a layer transition, or a custom-defined key, or
-    //    or some other arbitrary code. In this case, we bail immediately, reset
-    //    our watch state, and return true.
-    //
-    // In the event of an up event, there are these possibilities:
-    // 1. The key is not being locked. In this case, we return true and bail
-    //    immediately. This is the common case.
-    // 2. The key is being locked. In this case, we will mask the up event
-    //    by returning false, so the OS never sees that the key was released
-    //    until the user pressed the key again.
+    bool key_down = record->event.pressed;
+    bool key_up   = !record->event.pressed;
 
-    // We translate any OSM keycodes back to their original keycodes, so that if the key being
-    // one-shot modded is a standard keycode, we can handle it. This is the only set of special
-    // keys that we handle
-    uint16_t translated_keycode = translate_keycode(*keycode);
-
-    if (record->event.pressed) {
-        // Non-standard keycode, reset and return
-        if (!(IS_STANDARD_KEYCODE(translated_keycode) || translated_keycode == QK_LOCK)) {
-            watching = false;
+    // maintain list of active modifier keys
+    if(IS_MODIFIER_KEYCODE(*keycode)) {
+        dprint("Pressed modifier while not watching");
+        real_mod_state[*keycode - MOD_KEY_MIN] = key_down;
+        if(!watching && !locked) {
+            // no behaviour to modify, early return
             return true;
         }
+    }
+    
+    // start the process of locking mods
+    if (*keycode == QK_LOCK) {
+        dprint("Pressed keylock\n");
+        // re-press to kill all locks and start scanning for new locks
+        if (key_down) {
+            dprint("New keylock\n");
+            locked = false;
+            watching = true;
+            for (int i = 0; i < MOD_KEY_LEN; i++) {
+                if (mod_state[i] && !real_mod_state[i]) { // deregister any modifiers in the locked group that are not actually being pressed
+                    unregister_code(MOD_KEY_MIN + i);
+                }
+            }
+            for (int i = 0; i < MOD_KEY_LEN; i++) {
+                mod_state[i] = real_mod_state[i];
+            }
+            return false;
+        } else { // key_up, lock/unlock the modifiers
+            dprint("Released keylock key\n");
+            for (int i = 0; i < MOD_KEY_LEN; i++) { // if any modifiers are pressed, lock them
+                if (mod_state[i]) {
+                    locked = true;
+                    break;
+                }
+            }
+            watching = false;
+        }
+        return false; // no more proccessing for this keycode
+    }
 
-        // If we're already watching, turn off the watch.
-        if (translated_keycode == QK_LOCK) {
-            watching = !watching;
+    // handle modifiers based on state
+    if (IS_MODIFIER_KEYCODE(*keycode)) {
+        // kill the correct modifier keyups while locked
+        if (key_up && mod_state[*keycode - MOD_KEY_MIN]) {
+            dprint("Killed a modifier keyup\n");
             return false;
         }
 
-        if (IS_STANDARD_KEYCODE(translated_keycode)) {
-            // We check watching first. This is so that in the following scenario, we continue to
-            // hold the key: QK_LOCK, KC_F, QK_LOCK, KC_F
-            // If we checked in reverse order, we'd end up holding the key pressed after the second
-            // KC_F press is registered, when the user likely meant to hold F
-            if (watching) {
-                watching = false;
-                SET_KEY_STATE(translated_keycode);
-                // We need to set the keycode passed in to be the translated keycode, in case we
-                // translated a OSM back to the original keycode.
-                *keycode = translated_keycode;
-                // Let the standard keymap send the keycode down event. The up event will be masked.
-                return true;
-            }
-
-            if (KEY_STATE(translated_keycode)) {
-                UNSET_KEY_STATE(translated_keycode);
-                // The key is already held, stop this process. The up event will be sent when the user
-                // releases the key.
-                return false;
-            }
+        // update pressed mods while we are watching
+        if (watching && key_down) {
+            dprint("Adding a new mod to the locked list\n");
+            mod_state[*keycode - MOD_KEY_MIN] = true;
+            return true;
         }
-
-        // Either the key isn't a standard key, or we need to send the down event. Continue standard
-        // processing
-        return true;
-    } else {
-        // Stop processing if it's a standard key and we're masking up.
-        return !(IS_STANDARD_KEYCODE(translated_keycode) && KEY_STATE(translated_keycode));
     }
+    return true;
 }
