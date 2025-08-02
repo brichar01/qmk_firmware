@@ -28,6 +28,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // #define DEBUG_MATRIX_SCAN_RATE
 
 #define NO_ALT_REPEAT_KEY
+#define DEBOUNCE 50 // 50 presses per second, that should be plenty
 
 #ifdef RGB_MATRIX_ENABLE
 // #   define RGB_MATRIX_KEYPRESSES // reacts to keypresses
