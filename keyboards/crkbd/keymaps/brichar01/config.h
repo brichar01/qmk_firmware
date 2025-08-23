@@ -29,6 +29,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define NO_ALT_REPEAT_KEY
 #define DEBOUNCE 50 // 50 presses per second, that should be plenty
+#define UNICODE_KEY_LNX LCTL(LSFT(KC_U))
+#define UNICODE_KEY_WINC KC_RIGHT_ALT
+#define UNICODE_CYCLE_PERSIST true
+#define UNICODE_TYPE_DELAY 10
+#define UNICODE_SELECTED_MODES UNICODE_MODE_LINUX, UNICODE_MODE_WINCOMPOSE
+#define LEADER_TIMEOUT 750
+#define LEADER_PER_KEY_TIMING
+#define LEADER_NO_TIMEOUT
 
 #ifdef RGB_MATRIX_ENABLE
 // #   define RGB_MATRIX_KEYPRESSES // reacts to keypresses
