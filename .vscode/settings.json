@@ -9,6 +9,9 @@
         "**/*.bin": true,
         "**/*.uf2": true
     },
+    {
+    "clang-format.executable": "./.clang-format"
+    },
     "files.associations": {
         // QMK Filetypes
         "keyboard.json": "jsonc",
