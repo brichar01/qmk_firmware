@@ -17,6 +17,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include <stdint.h>
+#include "action_layer.h"
 #include "action_util.h"
 #include "community_modules.h"
 #include "keycodes.h"
@@ -39,7 +40,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {[0] = LAYOUT_split
                                                                 XXXXXXX, QK_TRI_LAYER_LOWER, QK_USER_0, KC_SPC, QK_TRI_LAYER_UPPER, XXXXXXX),
                                                               [1] = LAYOUT_split_3x6_3(
                                                                 _______, _______, QK_MOUSE_BUTTON_4, C(KC_F), QK_MOUSE_BUTTON_5, KC_PAGE_UP, KC_PAGE_UP, KC_HOME, KC_END, _______, _______, _______,
-                                                                KC_ESC, A(KC_TAB), C(KC_X), C(KC_C), C(KC_V), QK_REP, KC_ENT, KC_LEFT, KC_DOWN, KC_UP, KC_RIGHT, KC_PRINT_SCREEN,
+                                                                KC_ESC, QK_USER_1, C(KC_X), C(KC_C), C(KC_V), QK_REP, KC_ENT, KC_LEFT, KC_DOWN, KC_UP, KC_RIGHT, KC_PRINT_SCREEN,
                                                                 _______, C(KC_Z), _______, _______, _______, KC_LGUI, KC_PAGE_DOWN, KC_BSPC, KC_DEL, KC_TAB, QK_MOUSE_BUTTON_2, _______,
                                                                 _______, _______, MO(4), MO(4), _______, _______),
                                                               [2] = LAYOUT_split_3x6_3(
@@ -57,8 +58,24 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {[0] = LAYOUT_split
                                                                 _______, _______, _______, _______, _______, _______, KC_F11, KC_F4, KC_F5, KC_F6, _______, _______,
                                                                 _______, _______, _______, _______, _______, _______, KC_F10, KC_F1, KC_F2, KC_F3, _______, _______,
                                                                 _______, _______, _______, _______, _______, _______),
+                                                              [5] = LAYOUT_split_3x6_3(
+                                                                XXXXXXX, XXXXXXX, KC_W, KC_F, KC_P, KC_G, KC_J, KC_L, KC_U, KC_Y, XXXXXXX, XXXXXXX,
+                                                                KC_Q, KC_A, KC_R, KC_S, KC_T, KC_D, KC_H, KC_N, KC_E, KC_I, KC_O, KC_QUOTE,
+                                                                XXXXXXX, KC_Z, KC_X, KC_C, KC_V, KC_B, KC_K, KC_M, KC_COMM, KC_DOT, KC_SLSH, XXXXXXX,
+                                                                XXXXXXX, MO(6), KC_LEFT_SHIFT, KC_SPC, KC_ENT, XXXXXXX),
+
+
 };
 // clang-format on
+
+#define SEND_KEY(pressed, keycode)    \
+    do {                              \
+        if (pressed) {                \
+            register_code(keycode);   \
+        } else {                      \
+            unregister_code(keycode); \
+        }                             \
+    } while (false)
 
 typedef enum {
     CMB_LRPN,
@@ -73,12 +90,12 @@ typedef enum {
     CMB_SUPR,
 } combos_e;
 
-const uint16_t PROGMEM cmb_lprn[]  = {KC_T, KC_V, COMBO_END};
-const uint16_t PROGMEM cmb_rprn[]  = {KC_N, KC_M, COMBO_END};
-const uint16_t PROGMEM cmb_lbrc[]  = {KC_S, KC_C, COMBO_END};
-const uint16_t PROGMEM cmb_rbrc[]  = {KC_E, KC_COMMA, COMBO_END};
-const uint16_t PROGMEM cmb_lcbrc[] = {KC_R, KC_X, COMBO_END};
-const uint16_t PROGMEM cmb_rcbrc[] = {KC_I, KC_DOT, COMBO_END};
+const uint16_t PROGMEM cmb_lprn[]  = {KC_C, KC_V, COMBO_END};
+const uint16_t PROGMEM cmb_rprn[]  = {KC_M, KC_COMMA, COMBO_END};
+const uint16_t PROGMEM cmb_lbrc[]  = {KC_X, KC_C, COMBO_END};
+const uint16_t PROGMEM cmb_rbrc[]  = {KC_COMMA, KC_DOT, COMBO_END};
+const uint16_t PROGMEM cmb_lcbrc[] = {KC_V, KC_X, COMBO_END};
+const uint16_t PROGMEM cmb_rcbrc[] = {KC_M, KC_DOT, COMBO_END};
 const uint16_t PROGMEM cmb_ctrl[]  = {KC_N, KC_T, COMBO_END};
 const uint16_t PROGMEM cmb_shft[]  = {KC_S, KC_E, COMBO_END};
 const uint16_t PROGMEM cmb_alt[]   = {KC_R, KC_I, COMBO_END};
@@ -99,42 +116,33 @@ combo_t key_combos[] = {
 };
 // clang-format on
 
+typedef union {
+    struct {
+        uint8_t ctrl : 1;
+        uint8_t shft : 1;
+        uint8_t alt : 1;
+        uint8_t supr : 1;
+    };
+    uint8_t mods;
+} mods_t;
+
+typedef enum {
+    ALT_TAB_IDLE,
+    ALT_TAB_TABBING,
+} alt_tab_state_e;
+
 // userspace state
 typedef struct {
     // track the osl state of mods
-    union {
-        struct {
-            uint8_t ctrl_os : 1;
-            uint8_t shft_os : 1;
-            uint8_t alt_os : 1;
-            uint8_t supr_os : 1;
-        };
-        uint8_t os_mods;
-    };
-
+    mods_t os;
     // track the held state of mods
-    union {
-        struct {
-            uint8_t ctrl_held : 1;
-            uint8_t shft_held : 1;
-            uint8_t alt_held : 1;
-            uint8_t supr_held : 1;
-        };
-        uint8_t held_mods;
-    };
-
-    // tracks the actual state of mods
-    union {
-        struct {
-            uint8_t ctrl_pressed : 1;
-            uint8_t shft_pressed : 1;
-            uint8_t alt_pressed : 1;
-            uint8_t supr_pressed : 1;
-        };
-        uint8_t pressed_mods;
-    };
+    mods_t held;
     // track the actual state of hold_mods
+    mods_t pressed;
+    // set by shift to freez held mods (pressed continues to update and is restored when shift is released)
     bool hold_mods;
+
+    alt_tab_state_e alt_tab_st;
 } kbd_state_t;
 
 kbd_state_t state;
@@ -147,85 +155,130 @@ static void update_mod(uint8_t mod, bool pressed) {
     }
 }
 
-static void update_mods(kbd_state_t *s) {
+static void send_updated_mods(mods_t *mods) {
 #ifdef CONSOLE_ENABLE
     // If console is enabled, it will print the matrix position and status of each key pressed
-    uprintf("osl %x, held %x pressed %x\n", s->os_mods, s->held_mods, s->pressed_mods);
+    uprintf("mods %x\n", mods->mods);
 #endif
-    update_mod(MOD_BIT_LCTRL, s->ctrl_held);
-    update_mod(MOD_BIT_LSHIFT, s->shft_held);
-    update_mod(MOD_BIT_LALT, s->alt_held);
-    update_mod(MOD_BIT_LGUI, s->supr_held);
+    update_mod(MOD_BIT_LCTRL, mods->ctrl);
+    update_mod(MOD_BIT_LSHIFT, mods->shft);
+    update_mod(MOD_BIT_LALT, mods->alt);
+    update_mod(MOD_BIT_LGUI, mods->supr);
 }
 
 void _process_combo_event(kbd_state_t *s, uint16_t combo_index, bool pressed) {
     switch (combo_index) {
         case CMB_CTRL:
             if (pressed) {
-                s->ctrl_os   = 1;
-                s->ctrl_held = 1;
+                s->os.ctrl   = 1;
+                s->held.ctrl = 1;
             } else {
-                s->ctrl_held &= s->hold_mods;
+                s->held.ctrl &= s->hold_mods;
             }
-            s->ctrl_pressed = pressed ? 1 : 0;
+            s->pressed.ctrl = pressed ? 1 : 0;
             break;
         case CMB_SHFT:
             if (pressed) {
-                s->shft_os   = 1;
-                s->shft_held = 1;
+                s->os.shft   = 1;
+                s->held.shft = 1;
             } else {
-                s->shft_held &= s->hold_mods;
+                s->held.shft &= s->hold_mods;
             }
-            s->shft_pressed = pressed ? 1 : 0;
+            s->pressed.shft = pressed ? 1 : 0;
             break;
         case CMB_ALT:
             if (pressed) {
-                s->alt_os   = 1;
-                s->alt_held = 1;
+                s->os.alt   = 1;
+                s->held.alt = 1;
             } else {
-                s->alt_held &= s->hold_mods;
+                s->held.alt &= s->hold_mods;
             }
-            s->alt_pressed = pressed ? 1 : 0;
+            s->pressed.alt = pressed ? 1 : 0;
             break;
         case CMB_SUPR:
             if (pressed) {
-                s->supr_held = 1;
+                s->held.supr = 1;
             } else {
-                s->supr_held &= s->hold_mods;
+                s->held.supr &= s->hold_mods;
             }
-
-            s->supr_pressed = pressed ? 1 : 0;
+            s->pressed.supr = pressed ? 1 : 0;
             break;
     }
-    update_mods(&state);
+    send_updated_mods(&s->held);
 }
 
 #define RECORD_KEEP_PROCESSING true
 #define RECORD_STOP_PROCESSING false
 
+bool handle_alt_tab(kbd_state_t *s, uint16_t keycode, bool pressed) {
+    if (keycode != QK_USER_1 && keycode != QK_TRI_LAYER_LOWER) {
+        // no work to do (but really, don't call it)
+#ifdef CONSOLE_ENABLE
+        printf("Called with invalid keycode %x\n", keycode);
+#endif
+        return RECORD_KEEP_PROCESSING;
+    }
+
+#ifdef CONSOLE_ENABLE
+    printf("State %s, key %x, pressed: %i\n", s->alt_tab_st ? "Tabbing" : "Idle", keycode, pressed);
+#endif
+    switch (s->alt_tab_st) {
+        case ALT_TAB_IDLE: {
+            if (keycode == QK_USER_1 && pressed) {
+                s->alt_tab_st = ALT_TAB_TABBING;
+                s->held.alt   = 1;
+                send_updated_mods(&s->held);
+                register_code(KC_TAB);
+            }
+            if (keycode == QK_TRI_LAYER_LOWER) {
+                return RECORD_KEEP_PROCESSING;
+            }
+        } break;
+        case ALT_TAB_TABBING: {
+            // this catches the relase of the entering keystroke also
+            if (keycode == QK_USER_1) {
+                SEND_KEY(pressed, KC_TAB);
+            }
+            // releasing the layer releases alt
+            if (keycode == QK_TRI_LAYER_LOWER && !pressed) {
+                s->alt_tab_st = ALT_TAB_IDLE;
+                s->held.alt   = 0;
+                send_updated_mods(&s->held);
+                return RECORD_KEEP_PROCESSING;
+            }
+        }
+    }
+
+    return RECORD_STOP_PROCESSING;
+}
+
 bool _process_record_user(kbd_state_t *s, uint16_t keycode, keyrecord_t *record) {
     // custom handlers, stop processing
     bool pressed = record->event.pressed;
     if (keycode == QK_USER_0) {
-        if (s->held_mods | s->hold_mods) {
+        if (s->held.mods | s->hold_mods) {
             // track the hold_mods key
             s->hold_mods = pressed;
             // on release, update the mods to their actual state
-            s->ctrl_held = s->ctrl_pressed;
-            s->shft_held = s->shft_pressed;
-            s->alt_held  = s->alt_pressed;
-            s->supr_held = s->supr_pressed;
+            s->held.ctrl = s->pressed.ctrl;
+            s->held.shft = s->pressed.shft;
+            s->held.alt  = s->pressed.alt;
+            s->held.supr = s->pressed.supr;
         } else {
-            s->shft_held = pressed ? 1 : 0;
+            s->held.shft = pressed ? 1 : 0;
             // s->shft_pressed = pressed ? 1 : 0;
         }
-        update_mods(&state);
+        send_updated_mods(&s->held);
         return RECORD_STOP_PROCESSING;
+    }
+
+    if (keycode == QK_TRI_LAYER_LOWER || keycode == QK_USER_1) {
+        return handle_alt_tab(&state, keycode, pressed);
     }
 
     // any key release clears the current one shot modifiers
     if (IS_BASIC_KEYCODE(keycode) && pressed) {
-        add_mods(s->os_mods);
+        add_mods(s->os.mods);
     }
 
     return RECORD_KEEP_PROCESSING;
@@ -233,7 +286,7 @@ bool _process_record_user(kbd_state_t *s, uint16_t keycode, keyrecord_t *record)
 
 void process_combo_event(uint16_t combo_index, bool pressed) {
 #ifdef CONSOLE_ENABLE
-    // If console is enabled, it will print the matrix position and status of each key pressed
+    // If console is enabled, it will rint the matrix position and status of each key pressed
     uprintf("KL: kc: %d, pressed: %u\n", combo_index, pressed);
 #endif
     return _process_combo_event(&state, combo_index, pressed);
@@ -248,13 +301,13 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 }
 
 void clear_os_mods(kbd_state_t *s) {
-    del_mods(s->os_mods);
-    s->os_mods = 0;
+    s->os.mods = 0;
+    send_updated_mods(&s->held);
 }
 
 void post_process_record_user(uint16_t keycode, keyrecord_t *record) {
     bool pressed = record->event.pressed;
-    if ((IS_BASIC_KEYCODE(keycode) || keycode == KC_ESC) && !pressed) {
+    if ((IS_BASIC_KEYCODE(keycode) || keycode == KC_ESC) && !pressed && state.os.mods != 0) {
         clear_os_mods(&state);
     }
 }
