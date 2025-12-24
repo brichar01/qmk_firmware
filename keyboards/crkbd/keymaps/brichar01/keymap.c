@@ -44,9 +44,9 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {[0] = LAYOUT_split
                                                                 _______, C(KC_Z), _______, _______, _______, KC_LGUI, KC_PAGE_DOWN, KC_BSPC, KC_DEL, KC_TAB, QK_MOUSE_BUTTON_2, _______,
                                                                 _______, _______, MO(4), MO(4), _______, _______),
                                                               [2] = LAYOUT_split_3x6_3(
-                                                                _______, _______, KC_AT, KC_HASH, KC_DLR, KC_PERC, KC_EQL, KC_GRAVE, KC_SEMICOLON, KC_COLON, _______, _______,
-                                                                KC_EXLM, _______, _______, _______, _______, KC_CIRC, KC_AMPERSAND, KC_ASTR, KC_EQL, KC_UNDERSCORE, KC_MINUS, _______,
-                                                                _______, _______, _______, KC_BACKSLASH, KC_PIPE, KC_PLUS, KC_TILDE, _______, _______, _______, _______, _______,
+                                                                _______, _______, KC_AT, KC_HASH, KC_DLR, KC_PERC, _______, KC_GRAVE, KC_CIRC, KC_COLON, _______, _______,
+                                                                KC_EXLM, KC_TILDE, KC_AMPERSAND, KC_PLUS, KC_MINUS, _______, _______, KC_SEMICOLON, KC_EQL, KC_ASTR, KC_UNDERSCORE, _______,
+                                                                _______, _______, _______, KC_BACKSLASH, KC_PIPE, KC_EQL, _______, _______, _______, _______, _______, _______,
                                                                 _______,  _______, _______, _______, _______, _______),
                                                               [3] = LAYOUT_split_3x6_3(
                                                                 _______, _______, _______, _______, _______, _______, KC_EQL, KC_7, KC_8, KC_9, _______, _______,
@@ -63,8 +63,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {[0] = LAYOUT_split
                                                                 KC_Q, KC_A, KC_R, KC_S, KC_T, KC_D, KC_H, KC_N, KC_E, KC_I, KC_O, KC_QUOTE,
                                                                 XXXXXXX, KC_Z, KC_X, KC_C, KC_V, KC_B, KC_K, KC_M, KC_COMM, KC_DOT, KC_SLSH, XXXXXXX,
                                                                 XXXXXXX, MO(6), KC_LEFT_SHIFT, KC_SPC, KC_ENT, XXXXXXX),
-
-
+                                                              // [6] =
 };
 // clang-format on
 
