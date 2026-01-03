@@ -42,7 +42,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {[0] = LAYOUT_split
                                                                 _______, _______, QK_MOUSE_BUTTON_4, C(KC_F), QK_MOUSE_BUTTON_5, KC_PAGE_UP, KC_PAGE_UP, KC_HOME, KC_END, _______, _______, _______,
                                                                 KC_ESC, QK_USER_1, C(KC_X), C(KC_C), C(KC_V), QK_REP, KC_ENT, KC_LEFT, KC_DOWN, KC_UP, KC_RIGHT, KC_PRINT_SCREEN,
                                                                 _______, C(KC_Z), _______, _______, _______, KC_LGUI, KC_PAGE_DOWN, KC_BSPC, KC_DEL, KC_TAB, QK_MOUSE_BUTTON_2, _______,
-                                                                _______, _______, MO(4), MO(4), _______, _______),
+                                                                _______, _______, _______, _______, _______, _______),
                                                               [2] = LAYOUT_split_3x6_3(
                                                                 _______, _______, KC_AT, KC_HASH, KC_DLR, KC_PERC, _______, KC_GRAVE, KC_CIRC, KC_COLON, _______, _______,
                                                                 KC_EXLM, KC_TILDE, KC_AMPERSAND, KC_PLUS, KC_MINUS, _______, _______, KC_SEMICOLON, KC_EQL, KC_ASTR, KC_UNDERSCORE, _______,
@@ -60,10 +60,15 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {[0] = LAYOUT_split
                                                                 _______, _______, _______, _______, _______, _______),
                                                               [5] = LAYOUT_split_3x6_3(
                                                                 XXXXXXX, XXXXXXX, KC_W, KC_F, KC_P, KC_G, KC_J, KC_L, KC_U, KC_Y, XXXXXXX, XXXXXXX,
-                                                                KC_Q, KC_A, KC_R, KC_S, KC_T, KC_D, KC_H, KC_N, KC_E, KC_I, KC_O, KC_QUOTE,
+                                                                KC_ESC, KC_A, KC_R, KC_S, KC_T, KC_D, KC_H, KC_N, KC_E, KC_I, KC_O, KC_QUOTE,
                                                                 XXXXXXX, KC_Z, KC_X, KC_C, KC_V, KC_B, KC_K, KC_M, KC_COMM, KC_DOT, KC_SLSH, XXXXXXX,
                                                                 XXXXXXX, MO(6), KC_LEFT_SHIFT, KC_SPC, KC_ENT, XXXXXXX),
-                                                              // [6] =
+                                                              [6] = LAYOUT_split_3x6_3(
+                                                                XXXXXXX, XXXXXXX, KC_2, KC_3, KC_4, KC_5, KC_J, KC_L, KC_U, KC_Y, XXXXXXX, XXXXXXX,
+                                                                KC_1, KC_O, KC_I, KC_E, KC_N, KC_H, KC_H, KC_N, KC_E, KC_I, KC_O, KC_QUOTE,
+                                                                XXXXXXX, KC_SLSH, KC_DOT, KC_COMM, KC_M, KC_K, KC_K, KC_M, KC_COMM, KC_DOT, KC_SLSH, XXXXXXX,
+                                                                XXXXXXX, MO(6), KC_LEFT_SHIFT, KC_SPC, KC_ENT, XXXXXXX),
+
 };
 // clang-format on
 
@@ -83,22 +88,52 @@ typedef enum {
     CMB_RBRC,
     CMB_LCBRC,
     CMB_RCBRC,
-    CMB_CTRL,
-    CMB_SHFT,
-    CMB_ALT,
-    CMB_SUPR,
+    CMB_LT_GAMR,
+
+    CMB_L_CTRL,
+    CMB_L_CTRL_SHFT,
+    CMB_L_CTRL_ALT,
+    CMB_L_CTRL_SHFT_ALT,
+    CMB_L_SHFT,
+    CMB_L_SHFT_ALT,
+    CMB_L_ALT,
+    CMB_L_SUPR,
+
+    CMB_R_CTRL,
+    CMB_R_CTRL_SHFT,
+    CMB_R_CTRL_ALT,
+    CMB_R_CTRL_SHFT_ALT,
+    CMB_R_SHFT,
+    CMB_R_SHFT_ALT,
+    CMB_R_ALT,
+    CMB_R_SUPR,
 } combos_e;
 
-const uint16_t PROGMEM cmb_lprn[]  = {KC_C, KC_V, COMBO_END};
-const uint16_t PROGMEM cmb_rprn[]  = {KC_M, KC_COMMA, COMBO_END};
-const uint16_t PROGMEM cmb_lbrc[]  = {KC_X, KC_C, COMBO_END};
-const uint16_t PROGMEM cmb_rbrc[]  = {KC_COMMA, KC_DOT, COMBO_END};
-const uint16_t PROGMEM cmb_lcbrc[] = {KC_V, KC_X, COMBO_END};
-const uint16_t PROGMEM cmb_rcbrc[] = {KC_M, KC_DOT, COMBO_END};
-const uint16_t PROGMEM cmb_ctrl[]  = {KC_N, KC_T, COMBO_END};
-const uint16_t PROGMEM cmb_shft[]  = {KC_S, KC_E, COMBO_END};
-const uint16_t PROGMEM cmb_alt[]   = {KC_R, KC_I, COMBO_END};
-const uint16_t PROGMEM cmb_supr[]  = {KC_A, KC_O, COMBO_END};
+const uint16_t PROGMEM cmb_lprn[]    = {KC_C, KC_V, COMBO_END};
+const uint16_t PROGMEM cmb_rprn[]    = {KC_M, KC_COMMA, COMBO_END};
+const uint16_t PROGMEM cmb_lbrc[]    = {KC_X, KC_C, COMBO_END};
+const uint16_t PROGMEM cmb_rbrc[]    = {KC_COMMA, KC_DOT, COMBO_END};
+const uint16_t PROGMEM cmb_lcbrc[]   = {KC_V, KC_X, COMBO_END};
+const uint16_t PROGMEM cmb_rcbrc[]   = {KC_M, KC_DOT, COMBO_END};
+const uint16_t PROGMEM cmb_lt_gamr[] = {KC_B, KC_K, COMBO_END};
+
+const uint16_t PROGMEM cmb_l_ctrl[]          = {KC_F, KC_P, COMBO_END};
+const uint16_t PROGMEM cmb_l_ctrl_shft[]     = {KC_W, KC_F, KC_P, COMBO_END};
+const uint16_t PROGMEM cmb_l_ctrl_alt[]      = {KC_Q, KC_F, KC_P, COMBO_END};
+const uint16_t PROGMEM cmb_l_ctrl_shft_alt[] = {KC_Q, KC_W, KC_F, KC_P, COMBO_END};
+const uint16_t PROGMEM cmb_l_shft[]          = {KC_W, KC_F, COMBO_END};
+const uint16_t PROGMEM cmb_l_shft_alt[]      = {KC_Q, KC_W, KC_F, COMBO_END};
+const uint16_t PROGMEM cmb_l_alt[]           = {KC_Q, KC_W, COMBO_END};
+const uint16_t PROGMEM cmb_l_supr[]          = {KC_F, KC_G, COMBO_END};
+
+const uint16_t PROGMEM cmb_r_ctrl[]          = {KC_U, KC_L, COMBO_END};
+const uint16_t PROGMEM cmb_r_ctrl_shft[]     = {KC_Y, KC_U, KC_L, COMBO_END};
+const uint16_t PROGMEM cmb_r_ctrl_alt[]      = {KC_QUOTE, KC_U, KC_L, COMBO_END};
+const uint16_t PROGMEM cmb_r_ctrl_shft_alt[] = {KC_QUOTE, KC_Y, KC_U, KC_L, COMBO_END};
+const uint16_t PROGMEM cmb_r_shft[]          = {KC_Y, KC_U, COMBO_END};
+const uint16_t PROGMEM cmb_r_shft_alt[]      = {KC_QUOTE, KC_Y, KC_U, COMBO_END};
+const uint16_t PROGMEM cmb_r_alt[]           = {KC_QUOTE, KC_Y, COMBO_END};
+const uint16_t PROGMEM cmb_r_supr[]          = {KC_U, KC_J, COMBO_END};
 
 // clang-format off
 combo_t key_combos[] = {
@@ -108,10 +143,25 @@ combo_t key_combos[] = {
     [CMB_RBRC] = COMBO(cmb_rbrc, KC_RIGHT_BRACKET),
     [CMB_LCBRC] = COMBO(cmb_lcbrc, KC_LEFT_CURLY_BRACE),
     [CMB_RCBRC] = COMBO(cmb_rcbrc, KC_RIGHT_CURLY_BRACE),
-    [CMB_CTRL] = COMBO_ACTION(cmb_ctrl),
-    [CMB_SHFT] = COMBO_ACTION(cmb_shft),
-    [CMB_ALT] = COMBO_ACTION(cmb_alt),
-    [CMB_SUPR] = COMBO_ACTION(cmb_supr),
+    [CMB_LT_GAMR] = COMBO(cmb_lt_gamr, TG(5)),
+
+    [CMB_L_CTRL] = COMBO_ACTION(cmb_l_ctrl),
+    [CMB_L_CTRL_SHFT] = COMBO_ACTION(cmb_l_ctrl_shft),
+    [CMB_L_CTRL_ALT] = COMBO_ACTION(cmb_l_ctrl_alt),
+    [CMB_L_CTRL_SHFT_ALT] = COMBO_ACTION(cmb_l_ctrl_shft_alt),
+    [CMB_L_SHFT] = COMBO_ACTION(cmb_l_shft),
+    [CMB_L_SHFT_ALT] = COMBO_ACTION(cmb_l_shft_alt),
+    [CMB_L_ALT] = COMBO_ACTION(cmb_l_alt),
+    [CMB_L_SUPR] = COMBO_ACTION(cmb_l_supr),
+
+    [CMB_R_CTRL] = COMBO_ACTION(cmb_r_ctrl),
+    [CMB_R_CTRL_SHFT] = COMBO_ACTION(cmb_r_ctrl_shft),
+    [CMB_R_CTRL_ALT] = COMBO_ACTION(cmb_r_ctrl_alt),
+    [CMB_R_CTRL_SHFT_ALT] = COMBO_ACTION(cmb_r_ctrl_shft_alt),
+    [CMB_R_SHFT] = COMBO_ACTION(cmb_r_shft),
+    [CMB_R_SHFT_ALT] = COMBO_ACTION(cmb_r_shft_alt),
+    [CMB_R_ALT] = COMBO_ACTION(cmb_r_alt),
+    [CMB_R_SUPR] = COMBO_ACTION(cmb_r_supr),
 };
 // clang-format on
 
@@ -165,45 +215,86 @@ static void send_updated_mods(mods_t *mods) {
     update_mod(MOD_BIT_LGUI, mods->supr);
 }
 
-void _process_combo_event(kbd_state_t *s, uint16_t combo_index, bool pressed) {
+void set_keyboard_ctrl(kbd_state_t *kbd, bool pressed) {
+    if (pressed) {
+        kbd->os.ctrl   = 1;
+        kbd->held.ctrl = 1;
+    } else {
+        kbd->held.ctrl &= kbd->hold_mods;
+    }
+    kbd->pressed.ctrl = pressed ? 1 : 0;
+}
+
+void set_keyboard_shft(kbd_state_t *kbd, bool pressed) {
+    if (pressed) {
+        kbd->os.shft   = 1;
+        kbd->held.shft = 1;
+    } else {
+        kbd->held.shft &= kbd->hold_mods;
+    }
+    kbd->pressed.shft = pressed ? 1 : 0;
+}
+
+void set_keyboard_alt(kbd_state_t *kbd, bool pressed) {
+    if (pressed) {
+        kbd->os.alt   = 1;
+        kbd->held.alt = 1;
+    } else {
+        kbd->held.alt &= kbd->hold_mods;
+    }
+    kbd->pressed.alt = pressed ? 1 : 0;
+}
+
+void set_keyboard_supr(kbd_state_t *kbd, bool pressed) {
+    if (pressed) {
+        kbd->held.supr = 1;
+    } else {
+        kbd->held.supr &= kbd->hold_mods;
+    }
+    kbd->pressed.supr = pressed ? 1 : 0;
+}
+
+void _process_combo_event(kbd_state_t *kbd, uint16_t combo_index, bool pressed) {
     switch (combo_index) {
-        case CMB_CTRL:
-            if (pressed) {
-                s->os.ctrl   = 1;
-                s->held.ctrl = 1;
-            } else {
-                s->held.ctrl &= s->hold_mods;
-            }
-            s->pressed.ctrl = pressed ? 1 : 0;
+        case CMB_L_CTRL:
+        case CMB_R_CTRL:
+            set_keyboard_ctrl(kbd, pressed);
             break;
-        case CMB_SHFT:
-            if (pressed) {
-                s->os.shft   = 1;
-                s->held.shft = 1;
-            } else {
-                s->held.shft &= s->hold_mods;
-            }
-            s->pressed.shft = pressed ? 1 : 0;
+        case CMB_L_CTRL_SHFT:
+        case CMB_R_CTRL_SHFT:
+            set_keyboard_ctrl(kbd, pressed);
+            set_keyboard_shft(kbd, pressed);
             break;
-        case CMB_ALT:
-            if (pressed) {
-                s->os.alt   = 1;
-                s->held.alt = 1;
-            } else {
-                s->held.alt &= s->hold_mods;
-            }
-            s->pressed.alt = pressed ? 1 : 0;
+        case CMB_L_CTRL_ALT:
+        case CMB_R_CTRL_ALT:
+            set_keyboard_ctrl(kbd, pressed);
+            set_keyboard_alt(kbd, pressed);
             break;
-        case CMB_SUPR:
-            if (pressed) {
-                s->held.supr = 1;
-            } else {
-                s->held.supr &= s->hold_mods;
-            }
-            s->pressed.supr = pressed ? 1 : 0;
+        case CMB_L_CTRL_SHFT_ALT:
+        case CMB_R_CTRL_SHFT_ALT:
+            set_keyboard_ctrl(kbd, pressed);
+            set_keyboard_shft(kbd, pressed);
+            set_keyboard_alt(kbd, pressed);
+            break;
+        case CMB_L_SHFT:
+        case CMB_R_SHFT:
+            set_keyboard_shft(kbd, pressed);
+            break;
+        case CMB_L_SHFT_ALT:
+        case CMB_R_SHFT_ALT:
+            set_keyboard_shft(kbd, pressed);
+            set_keyboard_alt(kbd, pressed);
+            break;
+        case CMB_L_ALT:
+        case CMB_R_ALT:
+            set_keyboard_alt(kbd, pressed);
+            break;
+        case CMB_L_SUPR:
+        case CMB_R_SUPR:
+            set_keyboard_supr(kbd, pressed);
             break;
     }
-    send_updated_mods(&s->held);
+    send_updated_mods(&kbd->held);
 }
 
 #define RECORD_KEEP_PROCESSING true

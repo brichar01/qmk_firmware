@@ -26,7 +26,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // #define TAPPING_TERM 100
 
 // #define DEBUG_MATRIX_SCAN_RATE
-
 #define NO_ALT_REPEAT_KEY
 #define DEBOUNCE 50 // 20 presses per second, that should be plenty
 // #define UNICODE_KEY_LNX LCTL(LSFT(KC_U))
@@ -38,6 +37,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // #define LEADER_PER_KEY_TIMING
 // #define LEADER_NO_TIMEOUT
 #define COMBO_TERM 50
+#define COMBO_ONLY_FROM_LAYER 0
 
 #ifdef RGB_MATRIX_ENABLE
 // #   define RGB_MATRIX_KEYPRESSES // reacts to keypresses
