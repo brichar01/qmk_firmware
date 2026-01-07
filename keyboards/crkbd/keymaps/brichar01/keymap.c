@@ -27,6 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "quantum.h"
 #include "quantum_keycodes.h"
 #include "util.h"
+#include "report.h"
 #include QMK_KEYBOARD_H
 
 #include "action.h"
@@ -331,6 +332,9 @@ bool handle_alt_tab(kbd_state_t *s, uint16_t keycode, bool pressed) {
             }
             // releasing the layer releases alt
             if (keycode == QK_TRI_LAYER_LOWER && !pressed) {
+                if (is_key_pressed(KC_TAB)) {
+                    unregister_code(KC_TAB);
+                }
                 s->alt_tab_st = ALT_TAB_IDLE;
                 s->held.alt   = 0;
                 send_updated_mods(&s->held);
