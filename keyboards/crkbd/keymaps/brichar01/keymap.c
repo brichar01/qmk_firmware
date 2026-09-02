@@ -19,7 +19,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdint.h>
 #include "action_layer.h"
 #include "action_util.h"
-#include "community_modules.h"
 #include "keycodes.h"
 #include "keymap_us.h"
 #include "modifiers.h"
@@ -33,42 +32,47 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "action.h"
 #include "process_combo.h"
 
+#define MTA(x) MT(MOD_LALT, x)
+#define MTG(x) MT(MOD_LGUI, x)
+#define MTS(x) MT(MOD_LSFT, x)
+#define MTC(x) MT(MOD_LCTL, x)
+
 // clang-format off
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {[0] = LAYOUT_split_3x6_3(
-                                                                XXXXXXX, XXXXXXX, KC_W, KC_F, KC_P, KC_G, KC_J, KC_L, KC_U, KC_Y, XXXXXXX, XXXXXXX,
-                                                                KC_Q, KC_A, KC_R, KC_S, KC_T, KC_D, KC_H, KC_N, KC_E, KC_I, KC_O, KC_QUOTE,
-                                                                XXXXXXX, KC_Z, KC_X, KC_C, KC_V, KC_B, KC_K, KC_M, KC_COMM, KC_DOT, KC_SLSH, XXXXXXX,
-                                                                XXXXXXX, QK_TRI_LAYER_LOWER, QK_USER_0, KC_SPC, QK_TRI_LAYER_UPPER, XXXXXXX),
-                                                              [1] = LAYOUT_split_3x6_3(
-                                                                _______, _______, QK_MOUSE_BUTTON_4, C(KC_F), QK_MOUSE_BUTTON_5, KC_PAGE_UP, KC_PAGE_UP, KC_HOME, KC_END, _______, _______, _______,
-                                                                KC_ESC, QK_USER_1, C(KC_X), C(KC_C), C(KC_V), QK_REP, KC_ENT, KC_LEFT, KC_DOWN, KC_UP, KC_RIGHT, KC_PRINT_SCREEN,
-                                                                _______, C(KC_Z), _______, _______, _______, KC_LGUI, KC_PAGE_DOWN, KC_BSPC, KC_DEL, KC_TAB, QK_MOUSE_BUTTON_2, _______,
-                                                                _______, _______, _______, _______, _______, _______),
-                                                              [2] = LAYOUT_split_3x6_3(
-                                                                _______, _______, KC_AT, KC_HASH, KC_DLR, KC_PERC, _______, KC_GRAVE, KC_CIRC, KC_COLON, _______, _______,
-                                                                KC_EXLM, KC_TILDE, KC_AMPERSAND, KC_PLUS, KC_MINUS, _______, _______, KC_SEMICOLON, KC_EQL, KC_ASTR, KC_UNDERSCORE, _______,
-                                                                _______, _______, _______, KC_BACKSLASH, KC_PIPE, KC_EQL, _______, _______, _______, _______, _______, _______,
-                                                                _______,  _______, _______, _______, _______, _______),
-                                                              [3] = LAYOUT_split_3x6_3(
-                                                                _______, _______, _______, _______, _______, _______, KC_EQL, KC_7, KC_8, KC_9, _______, _______,
-                                                                _______, _______, _______, _______, _______, _______, KC_ASTR, KC_4, KC_5, KC_6, KC_MINUS, KC_PLUS,
-                                                                _______, _______, _______, _______, _______, _______, KC_0, KC_1, KC_2, KC_3, KC_SLSH, _______,
-                                                                _______, _______, _______, _______, _______, _______),
-                                                              [4] = LAYOUT_split_3x6_3(
-                                                                _______, _______, _______, _______, _______, _______, KC_F12, KC_F7, KC_F8, KC_F9, _______, _______,
-                                                                _______, _______, _______, _______, _______, _______, KC_F11, KC_F4, KC_F5, KC_F6, _______, _______,
-                                                                _______, _______, _______, _______, _______, _______, KC_F10, KC_F1, KC_F2, KC_F3, _______, _______,
-                                                                _______, _______, _______, _______, _______, _______),
-                                                              [5] = LAYOUT_split_3x6_3(
-                                                                XXXXXXX, XXXXXXX, KC_W, KC_F, KC_P, KC_G, KC_J, KC_L, KC_U, KC_Y, XXXXXXX, XXXXXXX,
-                                                                KC_ESC, KC_A, KC_R, KC_S, KC_T, KC_D, KC_H, KC_N, KC_E, KC_I, KC_O, KC_QUOTE,
-                                                                XXXXXXX, KC_Z, KC_X, KC_C, KC_V, KC_B, KC_K, KC_M, KC_COMM, KC_DOT, KC_SLSH, XXXXXXX,
-                                                                XXXXXXX, MO(6), KC_LEFT_SHIFT, KC_SPC, KC_ENT, XXXXXXX),
-                                                              [6] = LAYOUT_split_3x6_3(
-                                                                XXXXXXX, XXXXXXX, KC_2, KC_3, KC_4, KC_5, KC_J, KC_L, KC_U, KC_Y, XXXXXXX, XXXXXXX,
-                                                                KC_1, KC_O, KC_I, KC_E, KC_N, KC_H, KC_H, KC_N, KC_E, KC_I, KC_O, KC_QUOTE,
-                                                                XXXXXXX, KC_SLSH, KC_DOT, KC_COMM, KC_M, KC_K, KC_K, KC_M, KC_COMM, KC_DOT, KC_SLSH, XXXXXXX,
-                                                                XXXXXXX, MO(6), KC_LEFT_SHIFT, KC_SPC, KC_ENT, XXXXXXX),
+KC_ESC, KC_Q, KC_W, KC_F, KC_P, KC_G, KC_J, KC_L, KC_U, KC_Y, KC_SEMICOLON, XXXXXXX,
+XXXXXXX, MTA(KC_A), MTG(KC_R), MTS(KC_S), MTC(KC_T), KC_D, KC_H, MTC(KC_N), MTS(KC_E), MTG(KC_I), MTA(KC_O), KC_QUOTE,
+KC_ENTER, KC_Z, KC_X, KC_C, KC_V, KC_B, KC_K, KC_M, KC_COMM, KC_DOT, KC_SLSH, XXXXXXX,
+MO(4), QK_TRI_LAYER_LOWER, QK_USER_0, KC_SPC, QK_TRI_LAYER_UPPER, XXXXXXX),
+[1] = LAYOUT_split_3x6_3(
+_______, _______, QK_MOUSE_BUTTON_4, C(KC_F), QK_MOUSE_BUTTON_5, KC_PAGE_UP, KC_PAGE_UP, _______, _______, _______, _______, _______,
+_______, QK_USER_1, KC_LGUI, KC_LEFT_SHIFT, KC_LCTL, KC_HOME, KC_END, KC_LEFT, KC_DOWN, KC_UP, KC_RIGHT, KC_PRINT_SCREEN,
+_______, C(KC_Z), C(KC_X), C(KC_C), C(KC_V), _______, KC_PAGE_DOWN, KC_BSPC, KC_DEL, KC_TAB, QK_MOUSE_BUTTON_2, _______,
+_______, _______, _______, _______, _______, _______),
+[2] = LAYOUT_split_3x6_3(
+_______, _______, KC_AT, KC_HASH, KC_DLR, KC_PERC, _______, KC_GRAVE, KC_CIRC, KC_COLON, _______, _______,
+KC_EXLM, KC_TILDE, KC_AMPERSAND, KC_PLUS, KC_MINUS, _______, _______, KC_SEMICOLON, KC_EQL, KC_ASTR, KC_UNDERSCORE, _______,
+_______, _______, _______, KC_BACKSLASH, KC_PIPE, KC_EQL, _______, _______, _______, _______, _______, _______,
+_______,  _______, _______, _______, _______, _______),
+[3] = LAYOUT_split_3x6_3(
+_______, _______, _______, _______, _______, _______, KC_EQL, KC_7, KC_8, KC_9, _______, _______,
+_______, _______, _______, _______, _______, _______, KC_ASTR, KC_4, KC_5, KC_6, KC_MINUS, KC_PLUS,
+_______, _______, _______, _______, _______, _______, KC_0, KC_1, KC_2, KC_3, KC_SLSH, _______,
+_______, _______, _______, _______, _______, _______),
+[4] = LAYOUT_split_3x6_3(
+_______, _______, _______, _______, _______, _______, KC_F12, KC_F7, KC_F8, KC_F9, _______, _______,
+_______, _______, _______, _______, _______, _______, KC_F11, KC_F4, KC_F5, KC_F6, _______, _______,
+_______, _______, _______, _______, _______, _______, KC_F10, KC_F1, KC_F2, KC_F3, _______, _______,
+_______, _______, _______, _______, _______, _______),
+[5] = LAYOUT_split_3x6_3(
+XXXXXXX, XXXXXXX, KC_W, KC_F, KC_P, KC_G, KC_J, KC_L, KC_U, KC_Y, XXXXXXX, XXXXXXX,
+KC_ESC, KC_A, KC_R, KC_S, KC_T, KC_D, KC_H, KC_N, KC_E, KC_I, KC_O, KC_QUOTE,
+XXXXXXX, KC_Z, KC_X, KC_C, KC_V, KC_B, KC_K, KC_M, KC_COMM, KC_DOT, KC_SLSH, XXXXXXX,
+XXXXXXX, MO(6), KC_LEFT_SHIFT, KC_SPC, KC_ENT, XXXXXXX),
+[6] = LAYOUT_split_3x6_3(
+XXXXXXX, XXXXXXX, KC_2, KC_3, KC_4, KC_5, KC_J, KC_L, KC_U, KC_Y, XXXXXXX, XXXXXXX,
+KC_1, KC_O, KC_I, KC_E, KC_N, KC_H, KC_H, KC_N, KC_E, KC_I, KC_O, KC_QUOTE,
+XXXXXXX, KC_SLSH, KC_DOT, KC_COMM, KC_M, KC_K, KC_K, KC_M, KC_COMM, KC_DOT, KC_SLSH, XXXXXXX,
+XXXXXXX, MO(6), KC_LEFT_SHIFT, KC_SPC, KC_ENT, XXXXXXX),
 
 };
 // clang-format on
@@ -146,23 +150,23 @@ combo_t key_combos[] = {
     [CMB_RCBRC] = COMBO(cmb_rcbrc, KC_RIGHT_CURLY_BRACE),
     [CMB_LT_GAMR] = COMBO(cmb_lt_gamr, TG(5)),
 
-    [CMB_L_CTRL] = COMBO_ACTION(cmb_l_ctrl),
-    [CMB_L_CTRL_SHFT] = COMBO_ACTION(cmb_l_ctrl_shft),
-    [CMB_L_CTRL_ALT] = COMBO_ACTION(cmb_l_ctrl_alt),
-    [CMB_L_CTRL_SHFT_ALT] = COMBO_ACTION(cmb_l_ctrl_shft_alt),
-    [CMB_L_SHFT] = COMBO_ACTION(cmb_l_shft),
-    [CMB_L_SHFT_ALT] = COMBO_ACTION(cmb_l_shft_alt),
-    [CMB_L_ALT] = COMBO_ACTION(cmb_l_alt),
-    [CMB_L_SUPR] = COMBO_ACTION(cmb_l_supr),
-
-    [CMB_R_CTRL] = COMBO_ACTION(cmb_r_ctrl),
-    [CMB_R_CTRL_SHFT] = COMBO_ACTION(cmb_r_ctrl_shft),
-    [CMB_R_CTRL_ALT] = COMBO_ACTION(cmb_r_ctrl_alt),
-    [CMB_R_CTRL_SHFT_ALT] = COMBO_ACTION(cmb_r_ctrl_shft_alt),
-    [CMB_R_SHFT] = COMBO_ACTION(cmb_r_shft),
-    [CMB_R_SHFT_ALT] = COMBO_ACTION(cmb_r_shft_alt),
-    [CMB_R_ALT] = COMBO_ACTION(cmb_r_alt),
-    [CMB_R_SUPR] = COMBO_ACTION(cmb_r_supr),
+    // [CMB_L_CTRL] = COMBO_ACTION(cmb_l_ctrl),
+    // [CMB_L_CTRL_SHFT] = COMBO_ACTION(cmb_l_ctrl_shft),
+    // [CMB_L_CTRL_ALT] = COMBO_ACTION(cmb_l_ctrl_alt),
+    // [CMB_L_CTRL_SHFT_ALT] = COMBO_ACTION(cmb_l_ctrl_shft_alt),
+    // [CMB_L_SHFT] = COMBO_ACTION(cmb_l_shft),
+    // [CMB_L_SHFT_ALT] = COMBO_ACTION(cmb_l_shft_alt),
+    // [CMB_L_ALT] = COMBO_ACTION(cmb_l_alt),
+    // [CMB_L_SUPR] = COMBO_ACTION(cmb_l_supr),
+    //
+    // [CMB_R_CTRL] = COMBO_ACTION(cmb_r_ctrl),
+    // [CMB_R_CTRL_SHFT] = COMBO_ACTION(cmb_r_ctrl_shft),
+    // [CMB_R_CTRL_ALT] = COMBO_ACTION(cmb_r_ctrl_alt),
+    // [CMB_R_CTRL_SHFT_ALT] = COMBO_ACTION(cmb_r_ctrl_shft_alt),
+    // [CMB_R_SHFT] = COMBO_ACTION(cmb_r_shft),
+    // [CMB_R_SHFT_ALT] = COMBO_ACTION(cmb_r_shft_alt),
+    // [CMB_R_ALT] = COMBO_ACTION(cmb_r_alt),
+    // [CMB_R_SUPR] = COMBO_ACTION(cmb_r_supr),
 };
 // clang-format on
 
